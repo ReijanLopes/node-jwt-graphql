@@ -22,7 +22,6 @@ export type UserInput = {
 };
 
 export class User {
-  private media: Media[] = [];
   private constructor(
     private id: string,
     private name: string,
@@ -31,9 +30,10 @@ export class User {
     private taxId: string,
     private role: Role,
     private password: string,
+    private media: Media | null = null,
     private isActive: boolean,
-    private createdAt: Date = new Date(),
-    private updatedAt: Date = new Date(),
+    private createdAt: Date,
+    private updatedAt: Date,
   ) {}
 
   static create(props: UserInput): User {
@@ -66,12 +66,13 @@ export class User {
       props.name,
       props.email,
       props.phone,
+      props.taxId,
+      props.role ?? UserRole.EMPLOYEE, // ?? em vez de ||
       props.password,
-      props.role || UserRole.EMPLOYEE,
-      props.password,
-      props?.isActive || true,
-      props?.createdAt,
-      props?.updatedAt,
+      props.media ?? null,
+      props.isActive ?? true, // ?? garante false como valor válido
+      props.createdAt ?? new Date(), // nunca undefined
+      props.updatedAt ?? new Date(), // nunca undefined
     );
   }
 
@@ -100,16 +101,21 @@ export class User {
     return this.media;
   }
 
+  /** @internal — usar apenas em contexto de autenticação */
+  get getPassword() {
+    return this.password;
+  }
+
   public touch() {
     this.updatedAt = new Date();
   }
 
-  public updateRole(newRole: Role) {
+  public setRole(newRole: Role) {
     this.role = newRole;
     this.touch();
   }
 
-  public updateName(newName: string) {
+  public setName(newName: string) {
     if (!isValidName(newName)) {
       throw new Error(
         "Invalid name. Name must be at least 3 characters long and contain only letters and spaces.",
@@ -119,7 +125,7 @@ export class User {
     this.touch();
   }
 
-  public updatePhone(newPhone: string) {
+  public setPhone(newPhone: string) {
     if (!isValidPhone(newPhone)) {
       throw new Error(
         "Invalid phone number format. Phone number must contain only digits, parentheses, hyphens, and spaces, and must be between 10 and 11 digits long.",
@@ -129,7 +135,7 @@ export class User {
     this.touch();
   }
 
-  public updateTaxId(newTaxId: string) {
+  public setTaxId(newTaxId: string) {
     if (!isValidTaxId(newTaxId)) {
       throw new Error(
         "Invalid tax ID format. Tax ID must be a valid CPF number.",
@@ -139,7 +145,7 @@ export class User {
     this.touch();
   }
 
-  public updatePassword(newPassword: string) {
+  public setPassword(newPassword: string) {
     if (!isValidPassword(newPassword)) {
       throw new Error(
         "Invalid password. Password must be at least 8 characters long.",

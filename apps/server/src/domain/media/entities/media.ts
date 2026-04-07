@@ -5,8 +5,9 @@ export enum MediaTypeKey {
 
 export class Media {
   protected constructor(
-    protected readonly url: string,
-    protected readonly type: MediaTypeKey,
+    protected id: string = crypto.randomUUID(),
+    protected url: string,
+    protected type: MediaTypeKey,
     private createdAt: Date = new Date(),
     private updatedAt: Date = new Date(),
   ) {
@@ -24,31 +25,52 @@ export class Media {
     }
   }
 
-  getUrl() {
+   public touch() {
+    this.updatedAt = new Date();
+  }
+
+  get getId(){
+    return this.id;
+  }
+
+  get getUrl() {
     return this.url;
   }
 
-  getType() {
+  get getType() {
     return this.type;
+  }
+
+  setUrl(newUrl: string) {
+    if (!Media.isValidHttpUrl(newUrl)) {
+      throw new Error("Invalid URL. Must start with http:// or https://");
+    }
+    this.url = newUrl;
+    this.touch();
+  }
+
+  setType(newType: MediaTypeKey){
+    this.type = newType;
+    this.touch();
   }
 }
 
 export class VideoMedia extends Media {
-  private constructor(url: string) {
-    super(url, MediaTypeKey.VIDEO);
+  private constructor(url: string, id?: string) {
+    super(id, url, MediaTypeKey.VIDEO);
   }
 
-  static create(props: { url: string }): VideoMedia {
-    return new VideoMedia(props.url);
+  static create(props: { url: string; id?: string }): VideoMedia {
+    return new VideoMedia(props.url, props.id);
   }
 }
 
 export class ImageMedia extends Media {
-  private constructor(url: string) {
-    super(url, MediaTypeKey.IMAGE);
+  private constructor(url: string, id?: string) {
+    super(id, url, MediaTypeKey.IMAGE);
   }
 
-  static create(props: { url: string }): ImageMedia {
-    return new ImageMedia(props.url);
+  static create(props: { url: string; id?: string }): ImageMedia {
+    return new ImageMedia(props.url, props.id);
   }
 }

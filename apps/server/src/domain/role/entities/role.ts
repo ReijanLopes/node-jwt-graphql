@@ -8,18 +8,6 @@ export enum UserRole {
   EMPLOYEE = "EMPLOYEE", // Nível 1
 }
 
-// O master tem acesso a tudo, podendo criar, editar e deletar qualquer coisa, inclusive os admins
-
-// O admin poder ver tudo que esta relacionado a o seu departamento
-// e os departamentos abaixo do departamento dele, podendo alterar valores importantes das empresas
-
-// Manager poder ver tudo que esta relacionado a o seu departamento
-// e os departamentos abaixo do departamento dele, não podendo alterar valores importantes das empresas
-
-// Supervisor pode ver tudo que esta relacionar a o seu derpartamento
-
-// Employe vai ver somente o seu trabalho
-
 const RoleWeight: Record<UserRole, number> = {
   [UserRole.MASTER]: 5,
   [UserRole.ADMIN]: 4,
@@ -29,6 +17,7 @@ const RoleWeight: Record<UserRole, number> = {
 };
 
 type RoleInput = {
+  id?: string;
   name: string;
   level: number;
   createdAt?: Date;
@@ -36,9 +25,11 @@ type RoleInput = {
 };
 
 export class Role {
+  // 1. Coloque os parâmetros obrigatórios primeiro (name e level)
   constructor(
     private name: string,
     private level: number,
+    private id: string = crypto.randomUUID(),
     private createdAt: Date = new Date(),
     private updatedAt: Date = new Date(),
   ) {}
@@ -48,25 +39,31 @@ export class Role {
     if (!isValidName) {
       throw new Error(`Invalid user role`);
     }
+    
+    // 2. Atualize a ordem aqui também para refletir o construtor
     return new Role(
         props.name, 
         RoleWeight[props.name as UserRole],
+        props.id ?? crypto.randomUUID(),
         props.createdAt,
         props.updatedAt
     );
   }
 
+  get getId() {
+    return this.id;
+  }
+
   get getLevel(): number {
     return this.level;
   }
+  
   get getName() {
     return this.name;
   }
-  instance() {
-    return this;
-  }
 }
 
+// 3. Agora as subclasses vão funcionar perfeitamente!
 export class MasterRole extends Role {
   constructor() {
     super(UserRole.MASTER, RoleWeight[UserRole.MASTER]);
